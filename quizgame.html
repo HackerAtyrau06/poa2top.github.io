@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Сұрақ-Жауап Ойыны</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e0f7fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .quiz-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 500px;
+            text-align: center;
+            animation: slideIn 0.5s ease-in;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        h1 {
+            color: #00796b;
+            margin-bottom: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 12px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #004d40;
+        }
+        .hidden {
+            display: none;
+        }
+        .result {
+            font-size: 22px;
+            color: #00796b;
+            margin-top: 20px;
+        }
+        .feedback {
+            font-size: 18px;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            width: 80%;
+            margin: 0 auto;
+            transition: opacity 0.5s ease;
+        }
+        .feedback.correct {
+            background-color: #c8e6c9;
+            color: #2e7d32;
+        }
+        .feedback.incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Сұрақ-Жауап Ойыны</h1>
+        <div id="question-container">
+            <p id="question">Мұнда сұрақтар болады</p>
+            <div id="answers">
+                <button onclick="answer(0)">Жауап 1</button>
+                <button onclick="answer(1)">Жауап 2</button>
+                <button onclick="answer(2)">Жауап 3</button>
+                <button onclick="answer(3)">Жауап 4</button>
+            </div>
+            <p id="feedback" class="feedback hidden"></p>
+        </div>
+        <div id="result" class="hidden">
+            <p class="result">Сен <span id="score"></span>/10 ұпай жинадың!</p>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Операциялық жүйе дегеніміз не?",
+                answers: ["Бағдарламалық қамтамасыз ету", "Аппараттық құрал", "Деректер базасы", "Желілік протокол"],
+                correct: 0
+            },
+            {
+                question: "Қайсысы операциялық жүйе?",
+                answers: ["Linux", "HTML", "Python", "Java"],
+                correct: 0
+            },
+            {
+                question: "Виртуалды жадтың мақсаты неде?",
+                answers: ["Процестерді бөлу", "Жадты тиімді пайдалану", "Деректерді сақтау", "Желіні басқару"],
+                correct: 1
+            },
+            {
+                question: "Процесстерді жоспарлаушы не істейді?",
+                answers: ["Файлдарды сақтау", "Процесстерді басқару", "Деректерді өңдеу", "Бағдарламаларды жүктеу"],
+                correct: 1
+            },
+            {
+                question: "Операциялық жүйенің негізгі компоненттері қандай?",
+                answers: ["Жад менеджері", "Файлдық жүйе", "Процестерді басқарушы", "Барлығы дұрыс"],
+                correct: 3
+            },
+            {
+                question: "Файлдық жүйе дегеніміз не?",
+                answers: ["Деректерді ұйымдастыру тәсілі", "Жад менеджері", "Процессор", "Кэш-жад"],
+                correct: 0
+            },
+            {
+                question: "ОЖ қандай аппараттық құрылғылармен жұмыс істейді?",
+                answers: ["Пернетақта", "Монитор", "Принтер", "Барлығы дұрыс"],
+                correct: 3
+            },
+            {
+                question: "Linux жүйесінің артықшылықтары қандай?",
+                answers: ["Ашық код", "Тегін", "Тұрақтылық", "Барлығы дұрыс"],
+                correct: 3
+            },
+            {
+                question: "Операциялық жүйе мен бағдарламалық қамтамасыз ету арасындағы айырмашылық неде?",
+                answers: ["Екеуі бірдей", "ОЖ аппараттық құрал", "БҚ қолданбалы бағдарламалар", "ОЖ тек серверде"],
+                correct: 2
+            },
+            {
+                question: "Операциялық жүйенің қауіпсіздік функциялары қандай?",
+                answers: ["Файлдарды шифрлау", "Пайдаланушыларды басқару", "Келушілерді тіркеу", "Барлығы дұрыс"],
+                correct: 3
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        function showQuestion() {
+            const questionElement = document.getElementById('question');
+            const answerButtons = document.querySelectorAll('#answers button');
+            const feedbackElement = document.getElementById('feedback');
+
+            feedbackElement.classList.add('hidden');
+
+            const currentQuestion = questions[currentQuestionIndex];
+            questionElement.textContent = currentQuestion.question;
+
+            answerButtons.forEach((button, index) => {
+                button.textContent = currentQuestion.answers[index];
+                button.disabled = false;
+            });
+        }
+
+        function answer(selectedAnswer) {
+            const currentQuestion = questions[currentQuestionIndex];
+            const feedbackElement = document.getElementById('feedback');
+
+            const answerButtons = document.querySelectorAll('#answers button');
+            answerButtons.forEach(button => button.disabled = true);
+
+            if (selectedAnswer === currentQuestion.correct) {
+                feedbackElement.textContent = "Дұрыс!";
+                feedbackElement.classList.add('correct');
+                feedbackElement.classList.remove('incorrect');
+                score++;
+            } else {
+                feedbackElement.textContent = "Қате! Дұрыс жауап: " + currentQuestion.answers[currentQuestion.correct];
+                feedbackElement.classList.add('incorrect');
+                feedbackElement.classList.remove('correct');
+            }
+
+            feedbackElement.classList.remove('hidden');
+
+            currentQuestionIndex++;
+
+            setTimeout(() => {
+                if (currentQuestionIndex < questions.length) {
+                    showQuestion();
+                } else {
+                    showResult();
+                }
+            }, 2000); // Wait 2 seconds before showing the next question
+        }
+
+        function showResult() {
+            document.getElementById('question-container').classList.add('hidden');
+            document.getElementById('result').classList.remove('hidden');
+            document.getElementById('score').textContent = score;
+        }
+
+        showQuestion();
+    </script>
+</body>
+</html>
